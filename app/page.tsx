@@ -46,6 +46,13 @@ function DeliveryApp() {
     .map((id) => products.find((p) => p.id === id))
     .filter(Boolean) as Product[]
 
+  // Top 5 cervejas mais consumidas no Brasil (ranking 2025): Brahma, Heineken,
+  // Skol, Amstel, Budweiser — em ordem de consumo.
+  const TOP5_BR_IDS = ["4", "5", "62", "1", "36"]
+  const top5Products = TOP5_BR_IDS
+    .map((id) => products.find((p) => p.id === id))
+    .filter(Boolean) as Product[]
+
   useEffect(() => {
     // Verifica se ja tem endereco salvo
     const savedAddress = localStorage.getItem("delivery_address")
@@ -111,6 +118,26 @@ function DeliveryApp() {
       <main id="products-section" className={`max-w-lg mx-auto px-4 py-6 transition-all duration-300 ${isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"}`}>
         {activeCategory === "ofertas" ? (
           <>
+            {top5Products.length > 0 && (
+              <section className="mb-8">
+                <div className="-mx-4 mb-4 bg-gradient-to-r from-primary via-[#e8202b] to-primary px-4 py-3">
+                  <h2 className="flex items-center gap-2 text-lg font-black text-white">🏆 Top 5 do Brasil</h2>
+                  <p className="text-xs font-bold text-white/90">As cervejas mais consumidas e amadas do país — geladas e em oferta 🍺</p>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scroll-pl-4 scrollbar-hide snap-x snap-mandatory">
+                  {top5Products.map((product, index) => (
+                    <div key={product.id} className="flex-shrink-0 w-[42vw] max-w-[180px] snap-start">
+                      <FeaturedProductCard
+                        product={product}
+                        index={index}
+                        onClick={() => setSelectedProduct(product)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {copaOn && esquentaProducts.length > 0 && (
               <section className="mb-8">
                 <div className="-mx-4 mb-4 bg-gradient-to-r from-[#007a2f] via-[#009c3b] to-[#007a2f] px-4 py-3">
