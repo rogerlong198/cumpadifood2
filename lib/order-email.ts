@@ -275,3 +275,148 @@ export function renderOrderConfirmationEmail(order: OrderEmailInput) {
 
   return { subject, html };
 }
+
+// E-mail de carrinho abandonado: mesmo visual do de confirmação, mas com tom de
+// lembrete e um CTA pra finalizar o pedido. Enviado pelo /api/abandoned/check
+// quando o pedido não foi pago dentro do prazo.
+export function renderAbandonedCartEmail(order: OrderEmailInput) {
+  const firstName = (order.customer.name || "").trim().split(" ")[0] || "Cliente";
+  const checkoutUrl = `${APP_URL}/checkout`;
+
+  const itemRows = order.items
+    .map((item) => {
+      const lineTotal = item.price * item.quantity;
+      const imgCell = item.image
+        ? `<td width="56" style="padding:10px 12px 10px 0;vertical-align:top;">
+             <img src="${escapeHtml(item.image)}" width="56" height="56" alt="" style="display:block;width:56px;height:56px;border-radius:8px;border:1px solid ${C.line};object-fit:cover;" />
+           </td>`
+        : `<td width="56" style="padding:10px 12px 10px 0;vertical-align:top;">
+             <div style="width:56px;height:56px;border-radius:8px;border:1px solid ${C.line};background:${C.cardSoft};"></div>
+           </td>`;
+      return `
+        <tr>
+          ${imgCell}
+          <td style="padding:10px 0;vertical-align:top;color:${C.text};font-size:13px;line-height:18px;">
+            <strong style="display:block;color:${C.primary};font-size:13px;font-weight:700;">${escapeHtml(item.name)}</strong>
+            <span style="display:inline-block;margin-top:3px;color:${C.muted};font-size:11px;">Qtd: ${item.quantity} · ${formatBRL(item.price)} un.</span>
+          </td>
+          <td align="right" style="padding:10px 0 10px 12px;vertical-align:top;color:${C.text};font-size:13px;font-weight:700;white-space:nowrap;">
+            ${formatBRL(lineTotal)}
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  const subject = `${firstName}, você esqueceu sua gelada 🍺 · ${BRAND_NAME}`;
+  const shipping = order.shipping ?? 0;
+  const amber = "#b45309";
+  const amberSoft = "#fff7ed";
+  const amberBorder = "#fed7aa";
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>${escapeHtml(subject)}</title>
+</head>
+<body style="margin:0;padding:0;background:${C.bg};font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+    Você deixou itens no carrinho da ${BRAND_NAME}. Finalize antes que a gelada acabe!
+  </div>
+
+  <div style="max-width:600px;margin:0 auto;background:${C.card};">
+    <div style="background:${C.accent};height:5px;"></div>
+
+    <div style="background:${C.card};padding:24px 32px 20px;text-align:center;border-bottom:1px solid ${C.lineSoft};">
+      <img src="${BRAND_LOGO_URL}" alt="${BRAND_NAME}" height="80" style="display:inline-block;height:80px;width:auto;max-width:240px;border:0;outline:none;text-decoration:none;" />
+      <p style="margin:6px 0 0;font-size:11px;color:${C.muted};letter-spacing:1.4px;text-transform:uppercase;">Bebida gelada na sua casa 🍻</p>
+    </div>
+
+    <div style="background:${C.cardSofter};padding:22px 30px;text-align:center;border-bottom:1px solid ${C.line};">
+      <h1 style="margin:0 0 7px;font-size:19px;color:${C.primary};font-weight:700;line-height:1.25;">
+        Ei, ${escapeHtml(firstName)} — sua gelada ficou no carrinho! 🛒
+      </h1>
+      <p style="margin:0;font-size:12px;color:${C.muted};line-height:1.45;">
+        Você começou um pedido mas não finalizou o pagamento. Os itens ainda estão te esperando — é só concluir.
+      </p>
+    </div>
+
+    <div style="padding:16px 30px;">
+      <div style="background:${C.card};border-radius:15px;border:1px solid ${C.line};overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,0.08);">
+        <div style="background:${amber};padding:11px;text-align:center;">
+          <span style="color:#ffffff;font-size:15px;font-weight:700;letter-spacing:0.5px;">⏳ Pedido não finalizado</span>
+        </div>
+
+        <div style="padding:18px 24px 16px;background:${C.cardSoft};">
+          <div style="background:${C.card};border:1px solid ${C.line};border-radius:18px;padding:22px;text-align:center;box-shadow:0 8px 22px rgba(0,0,0,0.06);">
+            <p style="margin:0 0 8px;font-size:10px;color:${C.muted};text-transform:uppercase;letter-spacing:1.4px;font-weight:700;">Total do carrinho</p>
+            <p style="margin:0 0 16px;font-size:28px;font-weight:800;color:${C.accent};line-height:1.05;">${formatBRL(order.total)}</p>
+
+            <a href="${escapeHtml(checkoutUrl)}" style="display:block;background:${C.accent};color:#ffffff;text-decoration:none;padding:0 18px;border-radius:999px;font-size:14px;font-weight:800;line-height:54px;min-height:54px;box-shadow:0 8px 18px rgba(232,32,43,0.28);letter-spacing:0.4px;text-transform:uppercase;">
+              Finalizar meu pedido
+            </a>
+          </div>
+        </div>
+
+        <div style="padding:0 24px 4px;background:${C.cardSoft};">
+          <p style="margin:0 0 6px;font-size:11px;font-weight:800;color:${C.primary};letter-spacing:1.2px;text-transform:uppercase;">Itens que ficaram</p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${C.line};">
+            ${itemRows}
+          </table>
+        </div>
+
+        <div style="padding:0 24px 16px;background:${C.cardSoft};">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${C.line};">
+            <tr>
+              <td style="padding:10px 0;color:${C.muted};font-size:12px;">Subtotal</td>
+              <td align="right" style="padding:10px 0;color:${C.text};font-size:12px;font-weight:600;">${formatBRL(order.subtotal)}</td>
+            </tr>
+            <tr>
+              <td style="padding:0 0 10px;color:${C.muted};font-size:12px;">Entrega</td>
+              <td align="right" style="padding:0 0 10px;color:${shipping > 0 ? C.text : C.green};font-size:12px;font-weight:700;">${shipping > 0 ? formatBRL(shipping) : "Grátis"}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 0;border-top:1px solid ${C.line};color:${C.primary};font-size:13px;font-weight:800;">Total</td>
+              <td align="right" style="padding:10px 0;border-top:1px solid ${C.line};color:${C.accent};font-size:15px;font-weight:800;">${formatBRL(order.total)}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="padding:0 24px 22px;background:${C.cardSoft};">
+          <div style="background:${amberSoft};border:1px solid ${amberBorder};border-radius:9px;padding:12px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:${amber};line-height:1.45;">
+              Gelada é o tipo de coisa que não pode faltar. Finalize agora e receba em até 1 hora. 🛵
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:0 32px 24px;">
+      <div style="background:#f7f7f7;border-radius:10px;padding:13px 16px;text-align:center;border:1px solid #eeeeee;">
+        <p style="margin:0;font-size:11px;color:${C.muted};line-height:1.55;">
+          Em caso de dúvidas, basta responder este e-mail.
+        </p>
+      </div>
+    </div>
+
+    <div style="background:${C.dark};padding:28px 32px;text-align:center;">
+      <div style="display:inline-block;background:#ffffff;border-radius:14px;padding:10px 16px;">
+        <img src="${BRAND_LOGO_URL}" alt="${BRAND_NAME}" height="64" style="display:block;height:64px;width:auto;max-width:200px;border:0;outline:none;text-decoration:none;" />
+      </div>
+      <div style="width:42px;height:2px;background:${C.accent};margin:10px auto 14px;"></div>
+      <p style="margin:0 0 14px;font-size:11px;color:${C.mutedSoft};line-height:1.45;">
+        Bebida gelada, entrega rápida.
+      </p>
+      <div style="border-top:1px solid ${C.footerLine};padding-top:14px;">
+        <p style="margin:0;font-size:11px;color:#8a8a8a;">© ${new Date().getFullYear()} ${BRAND_NAME}. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  return { subject, html };
+}

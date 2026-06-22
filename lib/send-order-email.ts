@@ -3,7 +3,7 @@
 // o pagamento confirma.
 
 import { Resend } from "resend";
-import { renderOrderConfirmationEmail, type OrderEmailInput } from "./order-email";
+import { renderOrderConfirmationEmail, renderAbandonedCartEmail, type OrderEmailInput } from "./order-email";
 
 export type SendOrderEmailResult =
   | { ok: true; id: string | null }
@@ -63,6 +63,39 @@ export async function sendOrderEmail(order: OrderEmailInput): Promise<SendOrderE
     return { ok: true, id: result.data?.id ?? null };
   } catch (err: any) {
     console.error("[ORDER EMAIL] Falha inesperada:", err);
+    return { ok: false, error: err?.message || "Falha ao enviar e-mail.", status: 500 };
+  }
+}
+
+// E-mail de carrinho abandonado — só pro cliente (sem cópia pra loja).
+export async function sendAbandonedCartEmail(order: OrderEmailInput): Promise<SendOrderEmailResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromAddress = process.env.RESEND_FROM_EMAIL;
+  if (!apiKey || !fromAddress) {
+    console.error("[ABANDONED EMAIL] RESEND_API_KEY ou RESEND_FROM_EMAIL ausente.");
+    return { ok: false, error: "Servidor de e-mail não configurado.", status: 500 };
+  }
+
+  try {
+    const { subject, html } = renderAbandonedCartEmail(order);
+    const resend = new Resend(apiKey);
+
+    const result = await resend.emails.send({
+      from: fromAddress,
+      to: [order.customer.email],
+      subject,
+      html,
+      replyTo: process.env.RESEND_REPLY_TO || undefined,
+    });
+
+    if (result.error) {
+      console.error("[ABANDONED EMAIL] Resend error:", result.error);
+      return { ok: false, error: result.error.message || "Falha ao enviar e-mail.", status: 502 };
+    }
+
+    return { ok: true, id: result.data?.id ?? null };
+  } catch (err: any) {
+    console.error("[ABANDONED EMAIL] Falha inesperada:", err);
     return { ok: false, error: err?.message || "Falha ao enviar e-mail.", status: 500 };
   }
 }

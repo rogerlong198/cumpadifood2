@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server"
 import { generateOrderCode, kvConfigured, saveOrderSnapshot } from "@/lib/order-store"
+import { qstashConfigured, scheduleDelayedCall } from "@/lib/qstash"
 import type { OrderEmailInput } from "@/lib/order-email"
 
 export const dynamic = "force-dynamic"
+
+// Atraso (em minutos) até checar abandono e disparar o e-mail "esqueceu o carrinho".
+const ABANDONED_DELAY_MIN = 30
 
 // Status que a Pagou.ai considera como "pago"/liquidado.
 // NÃO inclui "authorized": em cartão isso é só pré-autorização (limite reservado),
@@ -184,8 +188,19 @@ export async function POST(request: Request) {
           total: Number(order.total) || Number(value),
         }
         await saveOrderSnapshot(String(txid), snapshot)
+
+        // Agenda o e-mail de carrinho abandonado: se em ABANDONED_DELAY_MIN o
+        // pedido não estiver pago, o QStash chama /api/abandoned/check.
+        if (qstashConfigured()) {
+          const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/$/, "")
+          const secret = process.env.PAGOUAI_WEBHOOK_SECRET || ""
+          if (appUrl) {
+            const callback = `${appUrl}/api/abandoned/check?txid=${encodeURIComponent(String(txid))}&secret=${encodeURIComponent(secret)}`
+            await scheduleDelayedCall(callback, ABANDONED_DELAY_MIN * 60)
+          }
+        }
       } catch (e) {
-        console.error("[PIX API] Falha ao salvar snapshot no KV:", e)
+        console.error("[PIX API] Falha ao salvar snapshot / agendar abandono:", e)
       }
     }
 

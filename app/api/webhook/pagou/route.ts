@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { claimOrderEmail, getOrderSnapshot, kvConfigured, releaseOrderEmail } from "@/lib/order-store"
+import { claimOrderEmail, getOrderSnapshot, kvConfigured, markOrderPaid, releaseOrderEmail } from "@/lib/order-store"
 import { sendOrderEmail, validateOrderInput } from "@/lib/send-order-email"
 
 export const dynamic = "force-dynamic"
@@ -56,6 +56,9 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Marca como pago já — independe do snapshot/e-mail. Impede o e-mail de abandono.
+    await markOrderPaid(txid).catch(() => {})
+
     const order = await getOrderSnapshot(txid)
     if (!order) {
       console.warn(`[WEBHOOK] Sem snapshot pro txid ${txid}.`)

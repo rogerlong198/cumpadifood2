@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { type OrderEmailInput } from "@/lib/order-email"
 import { sendOrderEmail, validateOrderInput } from "@/lib/send-order-email"
-import { claimOrderEmail, kvConfigured, releaseOrderEmail } from "@/lib/order-store"
+import { claimOrderEmail, kvConfigured, markOrderPaid, releaseOrderEmail } from "@/lib/order-store"
 
 export const dynamic = "force-dynamic"
 
@@ -23,6 +23,10 @@ export async function POST(request: Request) {
   // já enviou, claim devolve false e a gente sai sem reenviar.
   if (txid && kvConfigured()) {
     try {
+      // Pagamento confirmado (esta rota só é chamada após aprovação). Marca pago
+      // pra cancelar o e-mail de carrinho abandonado.
+      await markOrderPaid(String(txid)).catch(() => {})
+
       const won = await claimOrderEmail(String(txid))
       if (!won) {
         return NextResponse.json({ ok: true, deduped: true })
