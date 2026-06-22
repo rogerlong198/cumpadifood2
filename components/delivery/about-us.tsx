@@ -11,7 +11,7 @@ export function AboutUs() {
       <div className="bg-card rounded-xl overflow-hidden border border-border shadow-sm">
         <div className="relative w-full h-48">
           <Image
-            src="/store-front.jpg"
+            src="/store-front-compadrefood.jpg"
             alt="Fachada CompadreFood Distribuidora"
             fill
             className="object-cover"
