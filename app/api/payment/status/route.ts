@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { isOrderPaid, kvConfigured } from "@/lib/order-store"
 
 export const dynamic = "force-dynamic"
 
@@ -16,6 +17,18 @@ export async function GET(request: Request) {
 
   if (!txid) {
     return NextResponse.json({ error: "txid obrigatorio." }, { status: 400 })
+  }
+
+  // Atalho rápido: se o webhook já marcou pago no KV, confirma na hora — sem
+  // depender da consulta à Pagou, que demora a refletir o pagamento.
+  if (kvConfigured()) {
+    try {
+      if (await isOrderPaid(txid)) {
+        return NextResponse.json({ txid, paid: true, status: "paid", source: "kv" })
+      }
+    } catch {
+      // KV indisponível: segue pra consulta direta na Pagou.
+    }
   }
 
   const rawKey = process.env.PAGOUAI_SECRET_KEY

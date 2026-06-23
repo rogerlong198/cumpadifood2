@@ -736,7 +736,7 @@ function CheckoutContent() {
     };
 
     checkPixPayment();
-    const interval = window.setInterval(checkPixPayment, 5000);
+    const interval = window.setInterval(checkPixPayment, 3000);
 
     return () => {
       stopped = true;
