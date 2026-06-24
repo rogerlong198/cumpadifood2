@@ -1719,6 +1719,31 @@ function CheckoutContent() {
                             <p className="text-xs font-medium text-emerald-600">Assim que o PIX cair, seu pedido é confirmado automaticamente.</p>
                           </div>
                         </div>
+
+                        {/* Mini tutorial: como pagar com Pix */}
+                        <div className="mt-4 w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-sm">
+                          <p className="mb-3 text-center text-sm font-extrabold text-gray-900">Como pagar com Pix</p>
+                          <ol className="space-y-3">
+                            <li className="flex items-start gap-3">
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e23744] text-xs font-black text-white">1</span>
+                              <p className="text-xs font-medium leading-relaxed text-gray-600">
+                                Toque em <strong className="text-gray-900">COPIAR</strong> pra copiar o código Pix acima.
+                              </p>
+                            </li>
+                            <li className="flex items-start gap-3">
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e23744] text-xs font-black text-white">2</span>
+                              <p className="text-xs font-medium leading-relaxed text-gray-600">
+                                Abra o <strong className="text-gray-900">app do seu banco</strong> e escolha <strong className="text-gray-900">Pix › Pix Copia e Cola</strong>.
+                              </p>
+                            </li>
+                            <li className="flex items-start gap-3">
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e23744] text-xs font-black text-white">3</span>
+                              <p className="text-xs font-medium leading-relaxed text-gray-600">
+                                Cole o código, confira o valor e <strong className="text-gray-900">confirme</strong>. A confirmação é automática — esta tela atualiza sozinha. ✅
+                              </p>
+                            </li>
+                          </ol>
+                        </div>
                       </>
                     )}
                   </motion.div>
