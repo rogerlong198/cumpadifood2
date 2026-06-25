@@ -131,7 +131,7 @@ export async function POST(request: Request) {
     },
     products: [
       {
-        name: title || "Pedido CompadreFood",
+        name: title || "Pedido combo escolhido",
         price: amountCents,
         quantity: 1,
       },

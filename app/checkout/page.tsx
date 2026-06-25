@@ -642,7 +642,7 @@ function CheckoutContent() {
           cpf,
           name,
           email,
-          title: 'Pedido CompadreFood',
+          title: 'Pedido combo escolhido',
           // Snapshot do pedido pro webhook mandar o e-mail mesmo se a aba fechar.
           order: {
             customer: {
@@ -904,7 +904,7 @@ function CheckoutContent() {
               cpf,
               phone,
               installments: parseInt(cardInstallments) || 1,
-              title: 'Pedido CompadreFood',
+              title: 'Pedido combo escolhido',
               token: tokenData?.token,
               address,
               browser: browserInfo,
