@@ -15,6 +15,7 @@ import { CartButton } from "@/components/delivery/cart-button"
 import { CartDrawer } from "@/components/delivery/cart-drawer"
 import { ProductDetail } from "@/components/delivery/product-detail"
 import { LocationPopup } from "@/components/delivery/location-popup"
+import { CouponPopup } from "@/components/delivery/coupon-popup"
 import { HighlightProducts } from "@/components/delivery/category-showcase"
 import { PromoTimer } from "@/components/delivery/promo-timer"
 import { AboutUs } from "@/components/delivery/about-us"
@@ -312,6 +313,9 @@ function DeliveryApp() {
           onLocationSet={handleLocationSet}
         />
       )}
+
+      {/* Popup do cupom COPA — aparece a cada reload da home, sem brigar com o de localização */}
+      <CouponPopup suppressed={showLocationPopup} />
 
       {openCombo && (
         <UpsellCombo
