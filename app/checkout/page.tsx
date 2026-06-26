@@ -241,6 +241,13 @@ function CheckoutContent() {
     quantity: it.quantity,
     isCombo: !!it.isCombo,
   }));
+
+  // Nome que vai pro gateway (PIX e cartão): só os itens escolhidos + quantidade.
+  // Ex.: "2x Heineken + 1x Skol". Truncado pra não estourar o campo do gateway.
+  const orderTitle =
+    items.map((it) => `${it.quantity}x ${it.name}`).join(" + ").slice(0, 200) ||
+    "Pedido CumpadiFood";
+
   const removeItem = (id: string) => removeCartItem(id);
   const updateQuantity = (id: string, quantity: number) => updateCartQuantity(id, quantity);
 
@@ -642,7 +649,7 @@ function CheckoutContent() {
           cpf,
           name,
           email,
-          title: 'Pedido combo escolhido',
+          title: orderTitle,
           // Snapshot do pedido pro webhook mandar o e-mail mesmo se a aba fechar.
           order: {
             customer: {
@@ -904,7 +911,7 @@ function CheckoutContent() {
               cpf,
               phone,
               installments: parseInt(cardInstallments) || 1,
-              title: 'Pedido combo escolhido',
+              title: orderTitle,
               token: tokenData?.token,
               address,
               browser: browserInfo,
